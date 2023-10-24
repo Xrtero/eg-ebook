@@ -1,3 +1,4 @@
+# Chapter 14. Runtime Optimization
 
 **ABSTRACT**
 Runtime optimization has become an important technique for the implementation of many programming languages. The move from ahead-of-time compilation to runtime optimization lets the language runtime and its compilers capitalize on facts that are not known until runtime. If these facts enable specialization of the code, such as folding an invariant value, avoiding type conversion code, or replacing a virtual function call with a direct call, then the profit from use of runtime information can be substantial.
@@ -7,7 +8,7 @@ This chapter explores the major issues that arise in the design and implementati
 **KEYWORDS**
 Runtime Compilation, Just-in-Time Compilation, Dynamic Optimization
 
-# 14.1 Introduction
+## 14.1 Introduction
 
 >Runtime optimization
 >code optimization applied at runtime
@@ -20,13 +21,13 @@ Compiler writers have applied this strategy, _runtime optimization_ or _just-in-
 
 Just-in-time compilers are, undoubtedly, the most heavily used compilers that the computer science community has built. Most web browsers include JITs for the scripting languages used in web sites. Runtime systems for languages such as JAVA routinely include a JIT that compiles the heavily used code. Because these systems compile the code every time it runs, they perform many more compilations than a traditional AOT compiler.
 
-## Conceptual Roadmap
+### Conceptual Roadmap
 
 Classic AOT compilers make all of their decisions based on the facts that they can derive from the source text of the program. Such compilers can generate highly efficient code for imperative languages with declarations. However, some languages include features that make it impossible for the compiler to know important facts until runtime. Such features include dynamic typing, some kinds of polymorphism, and an open class structure.
 
 Runtime optimization involves a fundamental tradeoff between time spent compiling and code quality. The runtime optimizer examines the program's state to derive more precise information; it then uses that knowledge to specialize the executable code. Thus, to be effective, the runtime optimizer must derive useful information. It must improve runtime performance enough to compensate for the added costs of optimization and code generation. The compiler writer, therefore, has a strong incentive to use methods that are efficient, effective, and broadly applicable.
 
-## A Few Words About Time
+### A Few Words About Time
 
 Runtime optimization adds a new layer of complexity to our reasoning about time. These techniques intermix compile time with runtime and incur compile-time costs every time a program executes.
 
@@ -37,7 +38,7 @@ At a conceptual level, the distinction between compile time and runtime remains.
 
 To further complicate matters, some systems that use runtime optimization rely on an interpreter for their default execution mode. These systems interpret code until they discover a segment of code that should be compiled. At that point they compile and optimize the code; they then arrange for subsequent executions to use the compiled code for the segment. Such systems intermix interpretation, JIT compilation, and execution of compiled code.
 
-## Overview
+### Overview
 
 To implement efficiently features such as late binding of names to types or classes, dynamic loading and linking of code, and polymorphism, compiler writers have turned to runtime optimization. A runtime optimizer can inspect the running program's state to discover information that was obscured or unavailable before runtime.
 
@@ -70,7 +71,7 @@ JIT design involves fundamental tradeoffs between the amount of work performed a
 
 This chapter provides a snapshot of the state of the field at the time of publication. Section 14.2 describes four major issues that play important roles in shaping the structure of a JIT-enabled system. The next two sections present high-level sketches for two JITs that sit at different points in the design space. Section 14.3 describes a hot-trace optimizer while Section 14.4 describes a hot-method optimizer; both designs are modeled after successful systems. The Advanced Topics section explores several other issues that arise in the design and construction of practical JIT-based systems.
 
-# 14.2 Background
+## 14.2 Background
 
 Runtime optimization has emerged as a technology that lets the runtime system adapt the executable code more closely to the context in which it executes. In particular, by deferring optimization until the compiler has more complete knowledge about types, constant values, and runtime behavior (e.g., profile information), a JIT compiler can eliminate some of the overhead introduced by language features such as object-orientation, dynamic typing, and late binding.
 
@@ -95,7 +96,7 @@ This situation differs from that which occurs in an AOT compiler. Compiler write
 
 To recap, the constraints in a JIT mean that the JIT writer must choose transformations well, implement them carefully, and apply them to regions that execute frequently. Fig. 14.1 demonstrates the improvement from JIT compilation with the HotSpot Server Compiler. In that test, HotSpot produced significant improvements for codes that ran for more than one-half of a second. Careful attention to both costs and benefits allows this JIT to play a critical role in JAVA's runtime performance.
 
-## 14.2.1 Execution Model
+### 14.2.1 Execution Model
 
 The choice of an $\textit{execution model}$ has a large impact on the shape of a runtime optimization system. It affects the speed of baseline execution. It affects the amount of compilation that the system must perform and, therefore,the cumulative overhead of optimization. It also affects the complexity of the implementation.
 
@@ -134,7 +135,7 @@ The alternative, native-code execution, distributes the costs in a different way
 
 There is no single best solution to these design questions. Instead, the compiler writer must weigh carefully a variety of tradeoffs and must implement the system with an eye toward both efficiency and effectiveness. Successful systems have been built at several points in this design space.
 
-## 14.2.2 Compilation Triggers
+### 14.2.2 Compilation Triggers
 
 The runtime system must decide when and where to invoke the JIT. This decision has a strong effect on overall performance because it governs how often the JIT runs and where the JIT focuses its efforts.
 
@@ -154,7 +155,7 @@ Threshold values play a key role in determining overall runtime. Larger threshol
 
 To obtain accurate profile data, a VM-code environment can instrument the application's branches and jumps. To limit the overhead of profile collection, these systems often limit the set of points where they collect data. For example, blocks that are the target of a backward branch are good candidates to profile because they are likely to be loop headers. Similarly, the block that starts a procedure's prolog code is an obvious candidate to profile. The system can obtain call-site specific data by instrumenting precall sequences. All of these metrics, and others, have been used in practical and effective systems.
 
-### Native-Code Execution
+#### Native-Code Execution
 
 If the system executes native code, it must compile each procedure before that code can run. The system can trigger compilation at load time, either in batch for the entire executable (Speed Doubler) or as modules are loaded (early versions of the V8 system for JAVASCRIPT). Alternatively, the system can trigger the compiler to translate each procedure the first time it runs. To achieve that effect, the system can link a stub in place of any yet-to-be-compiled procedure; the stub locates the VM code for the callee, JIT compiles and links it, and reexecutes the call.
 
@@ -189,7 +190,7 @@ The choice of granularity has a profound impact on both the cost of optimization
 
 - A trace optimizer might use a fast local register allocator like the algorithm from Section 13.3. By contrast, a method optimizer must deal with control flow, so it needs a global register allocator such as the coloring allocator or the linear scan allocator (see Sections 13.4 and 13.5.3). Again, the tradeoff comes down to the cost of optimization against the total runtime improvement.
 
-## 14.2.4 Sources of Improvement
+### 14.2.4 Sources of Improvement
 
 A jit can discover facts that are not known before runtime and use those facts to justify or inform optimization. These facts can include profile information, object types, data structure sizes, loop bounds, constant values or types, and other system-specific facts. To the extent that these facts enable optimization that cannot be done in an AOT compiler, they help to justify runtime compilation.
 
@@ -239,7 +240,7 @@ Dynamo showed that JIT compilation could be profitable, even in competition with
 
 Control-flow optimizations, such as unrolling or cloning, typically require a control-flow graph. It can be difficult to reconstruct a CFG from assembly code. If the code uses a _jump-to-register_ operation (jump in ILOC), it may be difficult or impossible to know the actual target. In an IR version of the code, such branch targets can be recorded and analyzed. Even with _jump-to-label_ operations (jumpI in ILOC), optimization may obfuscate the control-flow to the point where it is difficult or impossible to reconstruct. For example, Fig. 12.17 on page 126 shows a single-cycle, software-pipelined loop that begins with five _jump-to-label_ operations; reconstructing the original loop from the CFG in Fig. 12.17(b) is a difficult problem.
 
-## 14.2.4 Building a Runtime Optimizer
+### 14.2.4 Building a Runtime Optimizer
 
 JIT construction is an exercise in engineering. It does not require new theories or algorithms. Rather, it requires careful design that focuses on efficiency and effectiveness, and implementation that focuses on minimizing actual costs. The success of a JIT-based system will depend on the cumulative impact of individual design decisions.
 
@@ -254,12 +255,12 @@ The hot-method optimizer takes its inspiration from the original HotSpot Server 
 
 
 
-## Review Questions
+### Review Questions
 
 1. In a system that executes native code by default, how might the system create the profile data that it needs? How might the system provide that data to the JIT?
 2. Eliminating the overhead of VM execution is, potentially, a major source of improvement. In what situations might emulation be more efficient than JIT compilation to native code?
 
-# Hot-Trace Optimization
+## 14.3 Hot-Trace Optimization
 
 In the classic execution model for compiled code, the processor reads operations and data directly from the address space of the running process. The drawing labeled "Normal Execution" in the margin depicts this situation. (It is a simplified version of Fig. 15.) The fetch-decode-execute cycle uses the processor's hardware.
 
@@ -276,7 +277,7 @@ Dynamo executed native code by emulation until it identified a hot trace. The em
 
 These design concepts raise several critical issues. How should the system define a trace? How can it find the traces? How does it decide a trace is hot? Where do optimized traces live? How does emulated cold code link to the hot code and vice versa?
 
-### Trace-Entry Blocks
+### 14.3.1 Trace-Entry Blocks
 
 In Dynamo, trace profiling, trace identification, and linking hot and cold code all depend on the notion of a _trace-entry block_. Each trace starts with an entry block. A trace-entry block meets one of two simple criteria. Either it is the target of a backward branch or jump, or it is the target of an exit from an existing compiled trace.
 
@@ -288,7 +289,7 @@ The second criterion selects blocks that may represent alternate paths through a
 
 To identify and profile traces, the trace optimizer finds trace-entry blocks and counts the number of times that they execute. Limiting the number of profiled blocks helps keep overhead low. As the optimizer discovers entry blocks, it enters them into a table--the entry table. The table contains an execution count and a code pointer for each block. It is a critical data structure in the hot-trace optimizer.
 
-## 14.3.1 Flow of Execution
+### 14.3.1 Flow of Execution
 
 Fig. 14.2(a) presents a high-level algorithm for the trace optimizer. The combination of the trace-entry table and the trace cache encapsulates the system's current state. The algorithm determines how to execute a block based on the presence or absence of that block in the entry table and the values of its execution counter and its code pointer.
 
@@ -359,7 +360,7 @@ After optimization, the compiler should schedule operations and perform register
 
 The size of the trace cache can affect performance. Size affects multiple aspects of trace-cache behavior, from memory locality to the costs of lookups and managing replacements. If the cache is too small, the jtt may discard fragments that are still hot, leading to lost performance and subsequent re-compilations. If the cache is too large, it may retain code that has gone cold, hurting locality and raising lookup costs. Undoubtedly, compiler writers need to tune the trace-cache size to the specific system characteristics.
 
-## 14.3.2 Linking Traces
+### 14.3.2 Linking Traces
 
 One key to efficient execution is to recognize when other paths through the cfg become hot and to optimize them in a way that works well with the fragments already in the cache.
 
@@ -397,16 +398,16 @@ Splitting $\langle B_{1},B_{2},B_{5},B_{6}\rangle$ after $B_{2}$ may produce les
 > 
 > The use of linked traces and interprocedural traces lets a hot-trace optimizer achieve a kind of partial optimization that an ahead-of-time compiler would not. The intent is to focus the JIT's effort where it should have maximum effect, and to limit its effort in regions where the expected impact is small.
 
-## Review Questions
+### Review Questions
 
 1. Once a trace entry block becomes hot, the optimizer chooses the rest of the trace based on the entry-block's next execution. Contrast this strategy with the trace-discovery algorithm used in trace-scheduling. How might the results of these two approaches differ?
 2. Suppose the trace optimizer fills its trace cache and must evict some trace. What steps would be needed to revert a specific trace so that it executes by VM-code emulation?
 
-# 14.4 Hot-Method Optimization
+## 14.4 Hot-Method Optimization
 
 Method-level optimization presents a different set of challenges and trade-offs than does trace-level optimization. To explore these issues, we will first consider a hot-method optimizer embedded in a JAVA environment. Our design is inspired by the original HotSpot Server Compiler (hereafter, HotSpot). The design is a mixed-mode environment that runs cold methods as JAVA bytecode and hot methods as native code. We finish this section with a discussion of the differences in a native-code hot-method optimizer.
 
-## 14.4.1 Hot-Methods in a Mixed-Mode Environment
+### 14.4.1 Hot-Methods in a Mixed-Mode Environment
 
 Fig. 14.5 shows an abstract view of the JAVA virtual machine or JVM. Classes and their associated methods are loaded into the environment by the Class Loader. Once stored in the VM, methods execute on an emulator--the figure's "Bytecode Engine." The JVM operates in a mixed-mode environment, with native-code implementations for many of the standard methods in system libraries.
 
@@ -422,7 +423,7 @@ new code in its native-code cache. Subsequent calls to that method run from the 
 
 The compiler writer must make several key decisions. The system needs a mechanism to decide which methods it will compile. The system needs a strategy to gather profile information efficiently. The compiler writer must decide whether the native code operates on the VM-code or the native-code versions of the various runtime structures, such as activation records. The compiler writer must design and implement the JIT, which is just an efficient and constrained compiler. Finally, the compiler writer must design and implement a mechanism to revert a method to VM-code emulation when the compiled method proves unsuitable. We will explore these issues in order.
 
-### Trigger for Compilation
+#### Trigger for Compilation
 
 Conceptually, the hot-method optimizer should compile a method when that method consumes a significant fraction of the execution time. Finding a hot method that meets this criterion is harder than finding a hot trace, because the notion of a "significant fraction" of execution time is both imprecise and unknowable until the program terminates.
 
@@ -525,7 +526,7 @@ The alternative is to deoptimize the code. Depending on the precise situation an
 
 A deoptimization strategy allows the JIT  to speculate, but limits the downside risk of incorrect speculation.
 
-## 14.4.2 Hot-Methods in a Native-Code Environment
+### 14.4.2 Hot-Methods in a Native-Code Environment
 
 Several issues change when the JIT  writer attempts hot-method optimization in a native-code environment. This section builds on insights from the Deutsch-Schiffman SMALLtalk-80 implementation.
 
@@ -592,7 +593,7 @@ The tradeoffs involved in a specific design depend on the execution environment,
 
 The previous sections introduce the major issues that arise in the design of a runtime optimizer. To build such a system, however, the compiler writer must make myriad design decisions, most of which have an impact on the effectiveness of the system. This section explores several major topics that arise in the literature that surrounds jit compilation. Each of them has a practical impact on system design. Each of them can change the overall efficacy of the system.
 
-## 14.5.1 Levels of Optimization
+### 14.5.1 Levels of Optimization
 
 > In practice, we know few developers who consider compile time when selecting an optimization level.
 
@@ -612,7 +613,7 @@ If the system finds that one method accounts for a significant fraction of inter
 
 In either of these scenarios, a JIT with multiple levels of optimization needs a clear set of policies to govern when and where it uses each level of optimization. One key part of that strategy will be a mechanism to prevent the JIT from trying to change the optimization level too often--driving up the JIT costs without executing the code enough to amortize the costs.
 
-## 14.5.2 On-Stack Replacement
+### 14.5.2 On-Stack Replacement
 
 A method-level JIT can encounter a situation in which one of the profile counters crosses its threshold during an execution of a long-running method. For example, consider a method with a triply nested loop that has iteration counts of 100 at each level. With a threshold of 10,000, the counter on the inner loop would trigger compilation after just one percent of the iterations.
 
@@ -643,7 +644,7 @@ The compiler writer has several ways to reduce the complexity of on-stack replac
 
 The implementation of on-stack replacement ties in a fundamental way to the interfaces between emulated and compiled codes and their runtime environments. The details will vary from system to system. This strategy has the potential to provide significant improvement in the performance of long-running methods.
 
-## 14.5.3 Code Cache Management
+### 14.5.3 Code Cache Management
 
 > To avoid confusion, we will refer to the JIT’s cache as a $code\ cache$ and to processor caches as hardware caches.
 
@@ -741,7 +742,7 @@ Most method-level optimizers apply some form of global value numbering. These al
 
 The time constraints that arise in jit compilation have encouraged the use of efficient algorithms. Tree-pattern matching instruction selectors can be hyper-efficient: using five to ten compile-time operations per emitted operation [162, 163, 297]. Linear scan register allocation avoids the expensive part of a full-fledged coloring allocator: building the interference graph [296]. In an environment where many methods are small and do not require spill code, linear scan works well. The HotSpot Server Compiler used interference graph trimming to reduce the cost of a full-fledged coloring allocator [93].
 
-#  Exercises
+##  Exercises
 
 1. Consider again the plot in Fig. 10 (Java scaling with and without the jit). How might changes in the threshold for jit compilation affect the behavior of the jit-enabled curve, particularly at the lower end of the curve, shown in panel (b)?
 2. Write pseudocode for a backward pass over an acyclic trace that discovers dead and partially dead operations. Assume that the jit has live information at each exit from the trace. How might the jit obtain live information for the trace exits?* One consideration in the design of a hot-trace optimizer is how to handle intermediate entries into a trace. The design in Section 14.3 ignores intermediate entries, with the effect that multiple copies of some blocks are made. As an alternative, the compiler writer could have the trace-building algorithm split the trace at an intermediate entry. This strategy would generate an optimized trace for the portion before the intermediate entry and an optimized trace for the portion after the intermediate entry. It would then directly link the former part to the latter part.
