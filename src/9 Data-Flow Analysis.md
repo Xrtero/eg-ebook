@@ -342,7 +342,7 @@ The MayMod sets computed by these equations are generalized summary sets. That i
 
 The compiler can also compute the set of variables that might be referenced as a result of executing a procedure call, the _interprocedural may reference problem_. The equations to annotate each procedure $p$ with a set MayRef($p$) are similar to the equations for $MayMod$The function unbind e_{e} maps one set of names into another. For a call-graph edge e=(p, q) and set of names s, unbind d_{e}(s) maps each name in s from the name space of q to the name space that holds at the call site, using the bindings at the call site that corresponds to e. In essence, it projects s from q 's name space into p 's name space.\\\\Given a set of LOCALMOD sets and a call graph, an iterative solver will find a fixed-point solution for these equations. It will not achieve the kind of fast time bound seen in global data-flow analysis. A more complex framework is required to achieve near-linear complexity on this problem (see Chapter Notes)..
 
-## Section Review
+#### Section Review
 
 Iterative data-flow analysis works by repeatedly reevaluating an equation at each node in some underlying graph until the sets defined by the equations reach a fixed point. Many data-flow problems have a unique fixed point, which ensures a correct solution independent of the evaluation order, and the finite descending chain property, which guarantees termination independent of the evaluation order. These two properties allow the compiler writer to choose evaluation orders that converge quickly. As a result, iterative analysis is robust and efficient.
 
@@ -350,7 +350,7 @@ The literature describes many different data-flow problems. Examples in this sec
 
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310090233823.png)
 
-## Review Questions
+#### Review Questions
 
 1. Compute Dom sets for the CFG shown in the margin, evaluating the nodes in the order $(B_{d},\,B_{2},\,B_{1},\,B_{5},\,B_{3},\,B_{0})$. Explain why this order takes a different number of iterations than is shown on page 456.
 2. When the compiler builds a call graph, ambiguous calls can complicate the process, much as ambiguous jumps complicate CFG construction. What language features might lead to an ambiguous call site--one where the compiler was uncertain of the callee5 identify?
@@ -792,13 +792,13 @@ For a block $b$, the compiler could compute $ConstantsIN($b$)$ as a pairwise int
 
 By contrast, SSCP is a simple iterative fixed-point algorithm operating on a sparse graph and particularly shallow lattice. It has the same complication with interpreting each operation over the known constant values, but it interprets single operations rather than whole blocks. It has an easily understood time bound. In this case, use of SSA form leads directly to a simple, efficient, sparse method for global constant propagation.
 
-## SECTION REVIEW
+### Section Review
 
 SSA form encodes information about both data flow and control flow in a conceptually simple intermediate form. This section focused on the algorithms to translate code into and out of semipruned SSA form. The initial construction of SSA form is a two-step process. The first step inserts $\phi$-functions into the code at join points where distinct definitions can converge. That algorithm relies on dominance frontiers for efficiency. The second step creates the SSA name space by adding subscripts to the original base names during a systematic traversal of the entire procedure.
 
 Because processors do not directly implement $\phi$-functions, the compiler must translate code out of SSA form before it can execute. Transformation of the code while in SSA form can complicate out-of-SSA translation. Section 9.3.5 examined both the "lost copy problem" and the "swap problem" and described approaches for handling them. Finally, Section 9.3.6 showed an algorithm for global constant propagation over the SSA-form.
 
-## REVIEW QUESTIONS
+### Review Questions
 1. Maximal SSA form includes useless $\phi$-functions that define nonlive values and redundant $\phi$-functions that merge identical values ($\text{e.g.}, \left.\mathrm{x}_{8} \leftarrow \phi\left(\mathrm{x}_{7}, \mathrm{x}_{7}\right)\right)$. Can semipruned SSA insert nonlive or redundant $\phi$-functions? If so, how can the compiler eliminate them?
 2. Assume that your compiler targets an ISA that implements swap $r_{1}$, $r_{2}$, which simultaneously performs $r_{1} \leftarrow r_{2}$ and $r_{2} \leftarrow r_{1}$. What impact could swap have on out-of-SSA translation?
 
@@ -904,13 +904,13 @@ Just as the algorithm builds jump functions to model the flow of values from cal
 
 To extend the algorithm to cover a larger class of variables, the compiler can extend the vector of jump functions in an appropriate way. Expanding the set of variables will increase the cost of analysis, but two factors mitigate the cost. First, in jump-function construction, the analyzer can notice that many of those variables do not have a value that can be modeled easily; it can map those variables onto a universal jump function that returns $\bot$ and avoid placing them on the worklist. Second, for the variables that might have constant values, the structure of the lattice ensures that they will be on the worklist at most twice. Thus, the algorithm should still run quickly.
 
-### Section Review
+#### Section Review
 
 Compilers perform interprocedural analysis to capture the behavior of all the procedures in the program and to bring that knowledge to bear on optimization within individual procedures. To perform interprocedural analysis, the compiler must model all of the code that it analyzes. A typical interprocedural problem requires the compiler to build a call graph (or some analog), to annotate it with information derived directly from the individual procedures, and to propagate that information around the graph.
 
 The results of interprocedural information are applied directly in intraprocedural analysis and optimization. For example, MarMood and MarRer sets can be used to mitigate the impact of a call site on global data-flow analyses or to avoid the necessity for $\boldsymbol{\phi}$-functions after a call site. The results of interprocedural constant propagation can be used to initialize a global algorithm, such as sparse conditional constant propagation (see Section 0.1.7).
 
-### Review Questions
+#### Review Questions
 
 1. Call-graph construction has many similarities to interprocedural constant propagation. The call-graph algorithm can achieve good results with relatively simple jump functions. What features could a language designer add that might necessitate more complex jump functions in the call-graph constructor?
 2. How might the analyzer incorporate MarMood information into interprocedural constant propagation? What effect would you expect it to have?
