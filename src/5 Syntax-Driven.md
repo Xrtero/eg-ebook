@@ -101,7 +101,7 @@ The critical observation is that the parser applies these rules in a predictable
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151750094.png)
 Of course, this example is overkill. A real system would almost certainly perform this same computation in a small, specialized piece of code, similar to the one in the margin. It implements the same computation, without the overhead of the more general scanning and parsing algorithms. In practice, this code would appear inline rather than as a function call. (The call overhead likely exceeds the cost of the loop.) Nonetheless, the example works well for explaining the principles of syntax-driven computation.
 
-### An Equivalent Treewalk Formulation
+#### An Equivalent Treewalk Formulation
 
 These integer-grammar value computations can also be written as recursive treewalks over syntax trees. Fig. 5.3(a) shows the syntax tree for "175" with the left recursive grammar. Panel (b) shows a simple treewalk to compute its value. It uses "_integer(c)_" to convert a single character to an integer value.
 
@@ -113,7 +113,7 @@ The restriction to bottom-up information flow might appear problematic. In fact,
 
 In principle, any top-down information flow problem can be solved with a bottom-up framework by passing all of the information upward in the tree to a common ancestor and solving the problem at that point. In practice, that idea does not work well because (1) the implementor must plan all the information flow; (2) she must write code to implement it; and (3) the computed result appears at a point in the tree far from where it is needed. In practice, it is often better to rethink the computation than to pass all of that information around the tree.
 
-### Form of the Grammar
+#### Form of the Grammar
 
 Because the grammar dictates the sequence of actions, its shape affects the computational strategy. Consider a right-recursive version of the grammar for positive integers. It reduces the rightmost digit first, which suggests the following approach:
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151752879.png)
@@ -149,7 +149,7 @@ Helper functions such NumberIntoReg and ValueIntoReg must emit three- address co
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151758688.png)
 Applying this syntax-driven translation scheme to the expression $a-2 \times b$ produces the ILOC code shown in the margin. The code assumes that $r_{arp}$ holds a pointer to the procedure's local data area and that $\mathrm{@a}$ and $\mathrm{@b}$ are the offsets from $r_{a r p}$ at which the program stores the values of a and b. The code leaves the result in $r_{5}$.
 
-### Implementation in an LR(1) Parser
+#### Implementation in an LR(1) Parser
 
 This style of syntax-driven computation was introduced in yacc, an early LALR(1) parser generator. The implementation requires two changes to the LR(1) skeleton parser. Understanding those changes sheds insight on both the yacc notation and how to use it effectively. Fig. 5.6 shows the modified skeleton LR(1) parser. Changes are typeset in _bold typeface_.
 
@@ -164,7 +164,7 @@ The parser generator constructs _PerformActions_ from the translation actions sp
 
 The remaining detail is to translate the yacc-notation symbols $\$ \$, \$ 1, \$2$, and so on into concrete references into the stack. $\$ \$$ represents the return value for PerformActions. Any other symbol, $\$i$, is a reference to the value field of the triple corresponding to symbol i in the production's RHS. Since those triples appear, in right to left order, on the top of the stack, $\$i$ translates to the value field for the triple located $|\beta|-i$ slots from the top of the stack.
 
-### Handling Nonlocal Computation
+#### Handling Nonlocal Computation
 
 The examples so far only show local computation in the grammar. Individual rules can only name symbols in the same production. Many of the tasks in a compiler require information from other parts of the computation; in a treewalk formulation, they need data from distant parts of the syntax tree.
 
@@ -198,14 +198,14 @@ The type of the declared variables is determined in the productions for `_TypeSp
 >
 > Making multiple passes over the code allows the compiler to gather more information and, in many cases, to generate more efficient code, as Floyd observed in 1961 [160]. With today’s more complex processors, almost all compilers perform multiple passes over an IR form of the code.
 
-### Form of the Grammar
+#### Form of the Grammar
 
 The form of the grammar can play an important role in shaping the computation. To avoid the global variable CurType in the preceding example, the compiler writer might reformulate the grammar for declaration syntax as follows:
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151830410.png)
 
 This form of the grammar accepts the same language. However, it creates distinct name lists for int and float names, As shown, the compiler writer can use these distinct productions to encode the type directly into the syntax-directed action. This strategy simplifies the translation framework and eliminates the use of a global variable to pass information between the productions. The framework is easier to write, easier to understand, and, likely, easier to maintain. Sometimes, shaping the grammar to the computation can simplify the syntax-driven actions.
 
-### Tailoring Expressions to Context
+#### Tailoring Expressions to Context
 
 A more subtle form of nonlocal computation can arise when the compiler writer needs to make a decision based on information in multiple productions. For example, consider the problem of extending the framework in Fig. 5.5 so that it can emit an immediate multiply operation (mult1 in ILOC) when translating an expression. In a single-pass compiler, for example, it might be important to emit the mult1 in the initial IR.
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151831298.png)
@@ -236,7 +236,7 @@ The parser can build an AST to represent control-flow constructs in a natural wa
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151832989.png)
 The actions to build this AST are straightforward.
 
-##### Building Three-Address Code
+#### Building Three-Address Code
 
 To translate an if-then-else construct into three-address code, the compiler must encode the transfers of control into a set of labels, branches, and jumps. The three-address IR resembles the obvious assembly code for the construct:
 
@@ -268,20 +268,20 @@ Using this scheme, the mid-production actions can access the stack slot associat
 
 Case statements and loops present similar problems. The compiler needs to encode the control-flow of the original construct into a set of labels, branches, and jumps. The parse stack provides a natural way to keep track of the information for nested control-flow structures.
 
-## Section Review
+#### Section Review
 
 As part of translation, the compiler produces an IR form of the code. To support that initial translation, parser generators provide a facility to specify syntax-driven computations that tie computation to the underlying grammar. The parser then sequences those actions based on the actual syntax of the input program.
 
 Syntax-driven translation creates an efficient mechanism for IR generation. It easily accommodates decisions that require either local knowledge or knowledge from earlier in the parse. It cannot make decisions based on facts that appear later in the parse. Such decisions require multiple passes over the IR to refine and improve the code.
 
-## Review Questions
+#### Review Questions
 
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151837647.png)
 
 1. The grammar in the margin defines the syntax of a simple four-function calculator. The calculator displays its current result on each reduction to _Expr_ or _Term_. Write the actions for a syntax-driven scheme to evaluate expressions with this grammar.
 2. Consider the grammar from Fig. 10. Write a set of translation rules to build an AST for an if-then-else construct.
 
-### Modeling the Naming Environment
+## 5.4 Modeling the Naming Environment
 
 Modern programming languages allow the programmer to create complex name spaces. Most languages support some variant of a lexical naming hierarchy, where visibility, type, and lifetime are expressed in relationship to the structure of the program. Many languages also support an object-oriented naming hierarchy, where visibility and type are relative to inheritance and lifetimes are governed by explicit or implicit allocation and deallocation. During translation, optimization, and code generation, the compiler needs mechanisms to model and understand these hierarchies.
 
@@ -331,7 +331,7 @@ To make the discussion concrete, consider the PASCAL program shown in Fig. 5.9. 
 To represent names in a lexically scoped language, the compiler can use the _static coordinate_ for each name. The static coordinate is a pair $\langle l,o\rangle$, where $l$ is the name's lexical nesting level and $o$ is the its offset in the data area for level $l$. The compiler obtains the static coordinate as part of the process of name resolution--mapping the name to a specific entity.
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151844167.png)
 
-### Modeling Lexical Scopes
+#### Modeling Lexical Scopes
 
 As the parser works its way through the input code, it must build and maintain a model of the naming environment. The model changes as the parser enters and leaves individual scopes. The compiler's symbol table instantiates that model.
 
@@ -345,7 +345,7 @@ Panel (b) shows the corresponding symbol tables. The table for a scope consists 
 
 This approach lets the compiler create flexible, searchable models for the naming environment in each scope. A _search path_ is just a list or chain of tables that specifies the order in which the tables will be searched. At compile time, a lookup for name resolution begins with the search path for the current scope and proceeds up the chain of surrounding scopes. Because the relationship between scopes is static (unchanging), the compiler can build scope-specific search paths with syntax-driven translation and preserve those tables and paths for use in later stages of the compiler and, if needed, in other tools.
 
-### Building the Model
+#### Building the Model
 
 The compiler writer can arrange to build the name-space model during syntax-driven translation. The source language constructs that enter and leave distinct scopes can trigger actions to create tables and search paths. The productions for declarations and references can create and refine the entries for names.
 
@@ -366,7 +366,7 @@ The compiler writer can arrange to build the name-space model during syntax-driv
 * _References_ trigger a lookup along the search path for the current scope. In a language with declarations, failure to find a name in the local table causes a search through the entire search path. In a language without declarations, the reference may create a local entity with that name; it may refer to a name in a surrounding scope. The rules on implicit decla- rations are language specific.
   FORTRAN creates the name with default attributes based on the first letter of the name. C looks for it in surrounding scopes and declares an error if it is not found. PYTHON’s actions depend on whether the first occurrence of the name in a scope is a definition or a use.
 
-### Examples
+#### Examples
 
 Lexical scope rules are generally similar across different programming languages. However, language designers manage to insert surprising and idiosyncratic touches. The compiler writer must adapt the general translation schemes described here to the specific rules of the source language.
 
@@ -420,7 +420,7 @@ To resolve member names, the compiler needs a model of the inheritance hierarchy
 
 The compiler uses the same tools to model the inheritance hierarchy that it does to model the lexical hierarchy. It creates tables to model each scope. It links those tables together to create search paths. The order in which those searches occur depends on language-specific scope and inheritance rules. The underlying technology used to create and maintain the model does not.
 
-### Compile-Time Versus Runtime Resolution
+#### Compile-Time Versus Runtime Resolution
 
 > **Closed class structure**
 > If the class structure of an application is fixed at compile time, the OOL has a closed hierarchy.
@@ -443,13 +443,13 @@ Assume, for the moment, a closed class structure. Consider two distinct scenario
 
 With an open class structure, the compiler may need to generate code that causes some of this name resolution to occur at runtime, as occurs with a virtual function in C++. In general, runtime name resolution replaces a simple, often inexpensive, reference with a call to a more expensive runtime support routine that resolves the name and provides the appropriate access (read, write, or execute).
 
-### Building the Model
+#### Building the Model
 
 As the parser processes a class definition, it can (1) enter the class name into the current lexical scope and (2) create a new table for the names defined in the class. Since both the contents of the class and its inheritance context are specified with syntax, the compiler writer can use syntax-drivenactions to build and populate the table and to link it into the surrounding inheritance hierarchy. Member names are found in the inheritance hierarchy; unqualified names are found in the lexical hierarchy.
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151916133.png)
 The compiler can use the symbol-table building blocks designed for lexical hierarchies to represent inheritance hierarchies. Fig. 5.11 shows two class definitions, one for Point and another for ColorPoint, which is a subclass of Point. The compiler can link these tables into a search path for the inheritance hierarchy, shown in the figure as a SuperClass pointer. More complicated situations, such as lexically nested class definitions, simply produce more complex search paths.
 
-### Examples
+#### Examples
 
 Object-oriented languages differ in the vocabulary that they use and in the object-models that they use.
 
@@ -457,7 +457,7 @@ C++ has a closed class structure. By design, method names can be bound to implem
 
 By contrast, JAVA has an open class structure, although the cost of changing the class structure is high--the code must invoke the _class loader_ to import new class definitions. A compiler could, in principle, resolve method names to implementations at startup and rebind after each invocation of the class loader. In practice, most JAVA systems interpret bytecode and compile frequently executed methods with a just-in-time compiler. This approach allows high-quality code and late binding. If the class loader overwrites some class definition that was used in an earlier JIT-compilation, it can force recompilation by invalidating the code for affected methods.
 
-### Multiple Inheritance
+#### Multiple Inheritance
 
 > **Multiple inheritance**
 > a feature that allows a class to inherit from multiple immediate superclasses
@@ -499,13 +499,13 @@ The specifics of the path are language dependent. If the syntax of the name indi
 
 The compiler can maintain the necessary search paths with syntax-driven actions that execute as the parser enters and leaves scopes, and as it enters and leaves declarations of classes, structures, and other aggregates. The details, of course, will depend heavily on the specific rules in the source language being compiled.
 
-### SECTION REVIEW
+#### SECTION REVIEW
 
 Programming languages provide mechanisms to control the lifetime and visibility of a name. Declarations allow explicit specification of a name’s properties. The placement of a declaration in the code has a direct effect on lifetime and visibility, as defined by the language’s scope rules. In an object-oriented language, the inheritance environment also affects the properties of a named entity.
 
 To model these complex naming environments, compilers use two fundamental tools: symbol tables and search paths that link tables together in a hierarchical fashion. The compiler can use these tools to construct context-specific search spaces that model the source-language rules.
 
-### REVIEW QUESTIONS
+#### REVIEW QUESTIONS
 
 1. Assume that the compiler builds a distinct symbol table and search path for each scope. For a simple PASCAL-like language, what actions should the parser take on entry to and exit from each scope?
 2. Using the table and search path model for name resolution, what is the asymptotic cost of (a) resolving a local name? (b) resolving a nonlocal name? (Assume that table lookup has a $O(1)$ cost.) In programs that you have written, how deeply have you nested scopes?
@@ -551,7 +551,7 @@ At a larger scale, type information plays an important enabling role in modular 
 
 Type information also plays a key role in garbage collection (see Section 6.6.2). It allows the runtime collector to understand the size of each entity on the heap and to understand which fields in the object are pointers to other, possibly heap-allocated, entities. Without type information, collected at compile time and preserved for the collector, the collector would need to conservatively assume that any field might be a pointer and apply runtime range and alignment tests to exclude out-of-bounds values.
 
-### Lack of Type Information
+#### Lack of Type Information
 
 > Complete type information might be un- available due to language design or due to late binding.
 
@@ -603,14 +603,14 @@ Support for strings varies across languages. Some languages, such as PYTHON or P
 
 A true string type differs from an array type in several important ways. Operations that make sense on strings, such as concatenation, translation, and computing string length, may not have analogs for arrays. The standard comparison operators can be overloaded so that string comparisons work in the natural way: "a" < "boo" and "fee" < "fie". Implementing a similar comparison for arrays of characters suggests application of the idea to arrays of numbers or structures, where the analogy may not hold. Similarly, the actual length of a string may differ from its allocated size, while most applications of an array use all the allocated elements.
 
-### Enumerated Types
+#### Enumerated Types
 
 Many languages let the programmer construct a type that contains a specific set of constant values. An _enumerated type_ lets the programmer use self-documenting names for small sets of constants. Classic examples include the days of the week and the months of the year. In C syntax, these might be written
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310151924798.png)
 
 The compiler maps each element of an enumerated type to a distinct value. The elements of an enumerated type are ordered, so comparisons between elements of the same type make sense. In the examples, $Monday < Tuesday$ and $June < July$. Operations that compare different enumerated types make no sense--for example, $Tuesday > September$ should produce a type error. PASCAL ensures that each enumerated type behaves as if it were a subrange of the integers. For example, the programmer can declare an array indexed by the elements of an enumerated type.
 
-### Structures and Variants
+#### Structures and Variants
 
 Structures, or _records_, group together multiple objects of arbitrary type. The elements of the structure are typically given explicit names. For example, a programmer implementing a parse tree in C might need nodes with both one and two children.
 
@@ -625,7 +625,7 @@ The example creates a new type, Node, that is a structure of either type N1 or t
 
 Between them, the language and the runtime need a mechanism to disambiguate references. One solution is fully qualified references as in p$\rightarrow$Node.N1.Value versus p$\rightarrow$Node.N2.Value. Alternatively, the language might adopt PASCAL's strategy and require runtime tags for variant records, with explicit checks for the tags at runtime.
 
-### Objects and Classes
+#### Objects and Classes
 
 In an object-oriented language, classes define both the content and form of objects, and they define the inheritance hierarchy that is used to resolve object-relative references. In implementation, however, an object looks like a record or structure whose organization is specified by the class definition.
 
@@ -713,7 +713,7 @@ That is, filter is a function of two arguments. The first should be a function t
 
 To perform accurate type inference, the compiler needs a type signature for every function. It can obtain that information in several ways. The compiler can require that the entire program be present for compilation, eliminating separate compilation. The compiler can require a type signature for each function, typically done with mandatory function prototypes. The compiler can defer type checking until link time or runtime, when such information is available. Finally, the compiler writer can embed the compiler in a programming system that gathers the requisite information. Each of these approaches has been used in real systems.
 
-### Section Review
+#### Section Review
 
 A type represents a set of properties common to all values of that type. A type system assigns a type to each value in a program. Programming languages use types to define legal and illegal behavior. A good type system can increase language expressiveness, expose subtle errors, and let the compiler avoid runtime type checks.
 
@@ -857,7 +857,7 @@ Programming languages differ as to whether or not the text of a structure declar
 
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310152004559.png)
 
-### Internal Layout for Object Records
+#### Internal Layout for Object Records
 
 In an object-oriented language, each object has its own object record (OR). Because object lifetimes are irregular, ORs typically live on the heap. The OR holds the data members specified by the object's class, along with pointers to its class and, in many implementations, a vector of the class' methods. With inheritance, the OR must include data members inherited from its superclasses and access to code members of its superclasses.
 
@@ -961,7 +961,7 @@ In general, left recursion can lead to smaller stack depths. Consider what happe
 
 The right-recursive grammar requires more stack space; its maximum stack depth is bounded only by the length of the expression. By contrast, the maximum stack depth with the left-recursive grammar depends on the gram- mar rather than the input stream.
 
-### Building Lists
+#### Building Lists
 
 The same issues arise with lists of elements, such as the list of statements in a block. The compiler writer can use either left recursion or right recursion in the grammar.
 ![image.png](https://blog-1314253005.cos.ap-guangzhou.myqcloud.com/202310152039328.png)
